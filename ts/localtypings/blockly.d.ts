@@ -401,7 +401,7 @@ declare namespace Blockly {
 
     class FieldNumber extends FieldTextInput {
         constructor(value: string | number, opt_min?: any, opt_max?: any, opt_precision?: any, opt_validator?: any);
-        setConstraints_(min: any, max: any, precision: any);
+        setConstraints(min: any, max: any, precision: any);
     }
 
     class FieldDropdown extends Field {
