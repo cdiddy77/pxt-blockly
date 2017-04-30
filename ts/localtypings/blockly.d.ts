@@ -363,6 +363,8 @@ declare namespace Blockly {
         EDITABLE: boolean;
         borderRect_: any;
         sourceBlock_: Block;
+        fieldGroup_: any;
+        size_: {width: number, height: number};
         init(block: Block): void;
         static superClass_: Field;
         constructor(text: string, opt_validator?: Function);
@@ -376,6 +378,7 @@ declare namespace Blockly {
         getScaledBBox_(): goog.math.Size;
         setValue(newValue: string): void;
         getValue(): string;
+        addArgType(argType: string): void;
     }
 
     class FieldVariable extends Field {
@@ -398,14 +401,14 @@ declare namespace Blockly {
 
     class FieldNumber extends FieldTextInput {
         constructor(value: string | number, opt_min?: any, opt_max?: any, opt_precision?: any, opt_validator?: any);
-        setConstraints(min: any, max: any, precision: any);
+        setConstraints_(min: any, max: any, precision: any);
     }
 
     class FieldDropdown extends Field {
         static CHECKMARK_OVERHANG: number;
         protected value_: any;
         constructor(val: (string[] | Object)[]);
-        protected getOptions_(): (string[] | Object)[];
+        getOptions(): (string[] | Object)[];
         onItemSelected(menu: goog.ui.Menu, menuItem: goog.ui.MenuItem);
     }
 
@@ -456,12 +459,14 @@ declare namespace Blockly {
         appendValueInput(name: string): Input;
         getChildren(): Block[];
         getColour(): string;
+        getColourSecondary(): string;
+        getColourTertiary(): string;
         getDescendants(): Block[];
         initSvg(): void;
         removeInput(name: string, opt_quiet?: boolean): void;
         dispose(healGap: boolean): void;
         setCollapsed(collapsed: boolean): void;
-        setColour(colour: number | string): void;
+        setColour(colour: number | string, secondaryColour?: string, tertiaryColour?: string): void;
         setCommentText(text: string): void;
         setConnectionsHidden(hidden: boolean): void;
         setDeletable(deletable: boolean): void;
@@ -476,6 +481,7 @@ declare namespace Blockly {
         setOutput(newBoolean: boolean, opt_check?: string | string[]): void;
         setParent(newParent: Block): void;
         setPreviousStatement(newBoolean: boolean, opt_check?: string | string[]): void;
+        isShadow(): Boolean;
         setShadow(shadow: boolean): void;
         setTitleValue(newValue: string, name: string): void;
         setTooltip(newTip: string | (() => void)): void;
@@ -596,6 +602,7 @@ declare namespace Blockly {
         svgBlockCanvas_: SVGGElement;
         options: Blockly.Options;
         RTL: boolean;
+        scale: number;
 
         newBlock(prototypeName: string, opt_id?: string): Block;
         render(): void;
@@ -724,6 +731,8 @@ declare namespace Blockly {
 
     namespace BlockSvg {
         let START_HAT: boolean;
+        let MIN_BLOCK_Y: number;
+        let FIELD_Y_OFFSET: number;
     }
 
     namespace Events {
@@ -787,6 +796,22 @@ declare namespace Blockly {
         function hide(): void;
         function position(anchorX: number, anchorY: number, windowSize: goog.math.Size,
             scrollOffset: goog.math.Coordinate, rtl: boolean): void;
+    }
+
+    namespace DropDownDiv {
+        let DIV: Element;
+        let ARROW_SIZE: number;
+        let content_: Element;
+        function show(newOwner: any, rtl: boolean, dispose?: () => void): void;
+        function hideIfOwner(oldOwner: any): void;
+        function hide(): void;
+        function hideWithoutAnimation(): void;
+        function clearContent(): void;
+        function getContentDiv(): HTMLElement;
+        function setColour(backgroundColour: string, borderColour: string): void;
+        function showPositionedByBlock(owner: Object, block: Block, opt_onHide?: Function, opt_secondaryYOffset?: number): boolean;
+        function setBoundsElement(boundsElement: Element): void;
+        function show(owner: Object, primaryX: number, primaryY: number, secondaryX: number, secondaryY: number, opt_onHide?: Function): Boolean;
     }
 
     var Tooltip: any;
