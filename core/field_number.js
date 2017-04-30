@@ -121,7 +121,7 @@ Blockly.FieldNumber.activeField_ = null;
  */
 Blockly.FieldNumber.prototype.getNumRestrictor = function(opt_min, opt_max,
     opt_precision) {
-  this.setConstraints_(opt_min, opt_max, opt_precision);
+  this.setConstraints(opt_min, opt_max, opt_precision);
   var pattern = "[\\d]"; // Always allow digits.
   if (this.decimalAllowed_) {
     pattern += "|[\\.]";
@@ -138,7 +138,7 @@ Blockly.FieldNumber.prototype.getNumRestrictor = function(opt_min, opt_max,
  * @param {number=} opt_max Maximum number allowed.
  * @param {number=} opt_precision Step allowed between numbers
  */
-Blockly.FieldNumber.prototype.setConstraints_ = function(opt_min, opt_max,
+Blockly.FieldNumber.prototype.setConstraints = function(opt_min, opt_max,
     opt_precision) {
   this.decimalAllowed_ = (typeof opt_precision == 'undefined') ||
       isNaN(opt_precision) || (opt_precision == 0) ||
