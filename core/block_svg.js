@@ -1051,13 +1051,12 @@ Blockly.BlockSvg.prototype.onMouseMove_ = function(e) {
     // Still dragging within the sticky DRAG_RADIUS.
     var dr = goog.math.Coordinate.distance(oldXY, newXY) * this.workspace.scale;
     if (dr > Blockly.DRAG_RADIUS) {
-      Blockly.Css.setCursor(Blockly.Css.Cursor.CLOSED);
       // Switch to unrestricted dragging.
       Blockly.dragMode_ = Blockly.DRAG_FREE;
       Blockly.longStop_();
-
       // Disable workspace resizing as an optimization.
       this.workspace.setResizesEnabled(false);
+
       // Clear WidgetDiv/DropDownDiv without animating, in case blocks are moved
       // around
       Blockly.WidgetDiv.hide(true);
@@ -1374,15 +1373,27 @@ Blockly.BlockSvg.prototype.updateCursor_ = function(e, closestConnection) {
   var showDeleteCursor = wouldDelete && !wouldConnect;
 
   if (showDeleteCursor) {
-    Blockly.Css.setCursor(Blockly.Css.Cursor.DELETE);
+    Blockly.utils.addClass(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklyDraggingDelete');
+    
+    if (this.workspace.toolbox_) {
+      // Change the cursor to a hand with an 'x'
+      this.workspace.toolbox_.addDeleteStyle();
+    }
+
     if (deleteArea == Blockly.DELETE_AREA_TRASH && this.workspace.trashcan) {
       this.workspace.trashcan.setOpen_(true);
     }
     return true;
   } else {
-    Blockly.Css.setCursor(Blockly.Css.Cursor.CLOSED);
     if (this.workspace.trashcan) {
       this.workspace.trashcan.setOpen_(false);
+    }
+    Blockly.utils.removeClass(/** @type {!Element} */ (this.svgGroup_),
+                      'blocklyDraggingDelete');
+    if (this.workspace.toolbox_) {
+      // Change the cursor on the toolbox
+      this.workspace.toolbox_.removeDeleteStyle();
     }
     return false;
   }

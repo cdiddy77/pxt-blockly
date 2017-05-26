@@ -23,6 +23,10 @@ var pxtblocky;
         function PXTToolbox(workspace) {
             return _super.call(this, workspace) || this;
         }
+        PXTToolbox.prototype.isInverted = function () {
+            var pxtOptions = this.workspace_.options;
+            return pxtOptions.toolboxOptions.inverted;
+        };
         /**
          * Recursively add colours to this toolbox.
          * @param {Blockly.Toolbox.TreeNode} opt_tree Starting point of tree.

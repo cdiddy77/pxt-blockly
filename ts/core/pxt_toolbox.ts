@@ -23,6 +23,11 @@ namespace pxtblocky {
             super(workspace);
         }
 
+        isInverted() {
+            const pxtOptions = (this.workspace_.options as PXTOptions);
+            return pxtOptions.toolboxOptions.inverted;
+        }
+
         /**
          * Recursively add colours to this toolbox.
          * @param {Blockly.Toolbox.TreeNode} opt_tree Starting point of tree.
