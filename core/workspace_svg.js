@@ -271,6 +271,22 @@ Blockly.WorkspaceSvg.prototype.toolboxCategoryCallbacks_ = {};
 Blockly.WorkspaceSvg.prototype.inverseScreenCTM_ = null;
 
 /**
+ * Whether the user is scaling the workspace using a gesture, for use in touch events.
+ * @type {boolean}
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.isTouchPinched_ = false;
+
+
+Blockly.WorkspaceSvg.prototype.touchStartPoint_ = null;
+
+Blockly.WorkspaceSvg.prototype.touchStartDistance_ = 0;
+
+Blockly.WorkspaceSvg.prototype.touchPreviousScale_ = null;
+
+Blockly.WorkspaceSvg.prototype.touchScale_ = null;
+
+/**
  * Getter for the inverted screen CTM.
  * @return {SVGMatrix} The matrix to use in mouseToSvg
  */
@@ -383,6 +399,15 @@ Blockly.WorkspaceSvg.prototype.createDom = function(opt_backgroundClass) {
       // Mouse-wheel.
       Blockly.bindEventWithChecks_(this.svgGroup_, 'wheel', this,
           this.onMouseWheel_);
+
+      Blockly.bindEvent_(this.svgGroup_, goog.events.EventType.TOUCHSTART, this,
+          this.onTouchStart_);
+      Blockly.bindEvent_(this.svgGroup_, goog.events.EventType.TOUCHMOVE, this,
+          this.onTouchMove_);
+      Blockly.bindEvent_(this.svgGroup_, goog.events.EventType.TOUCHEND, this,
+          this.onTouchEnd_);    
+      Blockly.bindEventWithChecks_(this.svgGroup_, 'gesturechange', this,
+          this.onGestureChange_);
     }
   }
 
@@ -1137,7 +1162,97 @@ Blockly.WorkspaceSvg.prototype.onMouseWheel_ = function(e) {
   e.preventDefault();
 };
 
+
+
+Blockly.WorkspaceSvg.prototype.getTwoTouchPointData_ = function(e) {
+  var points = false, touches = e.touches;
+  if(touches.length === 2){
+    points = {
+      x1: touches[0].pageX,
+      y1: touches[0].pageY,
+      x2: touches[1].pageX,
+      y2: touches[1].pageY
+    }
+    points.centerX = (points.x1 + points.x2) / 2;
+    points.centerY = (points.y1 + points.y2) / 2;
+    return points;
+  }
+  return points;
+}
+
+Blockly.WorkspaceSvg.prototype.onTouchStart_ = function(e) {
+  var points = this.getTwoTouchPointData_(e);
+  if (points) {
+    this.isTouchPinched_ = true;
+    this.touchStartPoint_ = {
+      "x": points.centerX,
+      "y": points.centerY
+    }
+    this.touchStartDistance_ = Math.sqrt( Math.pow( (points.x2 - points.x1), 2 ) + Math.pow( (points.y2 - points.y1), 2 ) );
+  }
+  e.preventDefault();
+}
+
+Blockly.WorkspaceSvg.prototype.onTouchMove_ = function(e) {
+  if(this.isTouchPinched_ && typeof window.ongesturechange != "object") {
+    var points = this.getTwoTouchPointData_(e);
+    if (points) {
+      if (this.currentGesture_) {
+        this.currentGesture_.cancel();
+      }
+      var currentPoint = {
+        "x": points.centerX,
+        "y": points.centerY
+      }
+      var moveDistance = Math.sqrt( Math.pow( (points.x2 - points.x1), 2 ) + Math.pow( (points.y2 - points.y1), 2 ));
+      var previousScale = this.touchPreviousScale_ = this.touchScale_ || 1;
+      var startDistance = this.touchStartDistance_;
+      var scale = this.touchScale_ = moveDistance / startDistance;
+      var currentDistance = scale * startDistance;
+
+      if (currentDistance > 0) {
+        var delta = scale - 1;
+        e.clientX = currentPoint.x;
+        e.clientY = currentPoint.y;
+        var position = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
+            this.getInverseScreenCTM());
+        this.zoom(position.x, position.y, delta);
+      }
+    }
+    e.preventDefault();
+  }
+}
+
+Blockly.WorkspaceSvg.prototype.onTouchEnd_ = function(e) {
+  if(this.isTouchPinched_) {
+    this.isTouchPinched_ = false;
+    this.touchPreviousScale_ = null;
+    this.touchScale_ = null;
+    this.touchStartPoint_ = null;
+    this.touchStartDistance_ = 0;
+  }
+  e.preventDefault();
+}
+
 /**
+ * Handle a gesture change on SVG drawing surface.
+ * @param {!Event} e Gesture change event.
+ * @private
+ */
+Blockly.WorkspaceSvg.prototype.onGestureChange_ = function(e) {
+  if (this.currentGesture_) {
+    this.currentGesture_.cancel();
+  }
+  var PIXELS_PER_ZOOM_STEP = 500;
+  var scale = e.scale - 1;
+  var delta = scale / PIXELS_PER_ZOOM_STEP;
+  var position = Blockly.utils.mouseToSvg(e, this.getParentSvg(),
+      this.getInverseScreenCTM());
+  this.zoom(position.x, position.y, scale);
+  e.preventDefault();
+}
+
+/**x
  * Calculate the bounding box for the blocks on the workspace.
  * Coordinate system: workspace coordinates.
  *
